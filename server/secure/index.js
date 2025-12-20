@@ -83,7 +83,7 @@ function getPasswordHint(actual, attempt) {
 
 module.exports = function initChat() {  
   io.on("connection", (socket) => {
-    console.log("Secure:", "Secure:", "Secure:", "User connected:", socket.id)
+    console.log("Secure:", "User connected:", socket.id)
     
     // LOGIN - The most insecure login ever
     socket.on("login", (data) => {
@@ -368,9 +368,9 @@ module.exports = function initChat() {
     })
     
     socket.on("disconnect", () => {
-      console.log("Secure:", "Secure:", "Secure:", "User disconnected:", socket.id)
+      console.log("Secure:", "User disconnected:", socket.id)
     })
   })
   
-  console.log("Secure:", "Secure:", "Secure:", "✅ [Secure Chat] Backend initialized");
+  console.log("Secure:", "✅ [Secure Chat] Backend initialized");
 }
