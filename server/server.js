@@ -16,12 +16,12 @@ const io = new Server(server, {
 });
 
 // Create namespaces for each backend
-const insecureChatNamespace = io.of("/server/insecure");
-const secureChatNamespace = io.of("/server/secure");
+const insecureChatNamespace = io.of("/socket/insecure");
+const secureChatNamespace = io.of("/socket/secure");
 
 // Import and initialize each backend module
-const initInsecure = require("./server/insecure");
-const initSecure = require("./server/secure");
+const initInsecure = require("./insecure");
+const initSecure = require("./secure");
 
 // Pass the namespace and express app to each module
 initInsecure(insecureChatNamespace, app);
