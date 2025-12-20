@@ -473,7 +473,6 @@ function renderMessage(data, isSelf) {
   // 4. Append it to the page
   chatBox.appendChild(fragment);
   
-  chatBox.appendChild(msgDiv)
   chatBox.scrollTop = chatBox.scrollHeight
 }
 
