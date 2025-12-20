@@ -447,12 +447,6 @@ function send() {
   msgInput.value = ""
 }
 
-function escapeHTML(str) {
-  let pre = document.createElement("pre")
-  pre.innerText = str
-  return pre.innerHTML
-}
-
 function renderMessage(data, isSelf) {
   let emptyState = document.getElementById("empty-state")
   if (emptyState) emptyState.remove()
@@ -462,17 +456,22 @@ function renderMessage(data, isSelf) {
     msgIDElement.classList.remove("unloaded")
     return
   }
-  
-  let msgDiv = document.createElement("div")
-  msgDiv.className = `message ${isSelf ? "unloaded" : ""} ${data.username === currentUser?.username ? "user-msg" : "other-msg"}`
-  msgDiv.id = `msg-${data.messageID}`
-  
-  msgDiv.innerHTML = `
+
+  // XSS attacks are fun
+  // 1. Create a range
+  const range = document.createRange();
+  // 2. Set the context (where the HTML will live)
+  range.selectNode(chatBox);
+  // 3. Create a fragment (this parses the HTML and enables script execution)
+  const fragment = range.createContextualFragment(`
+  <div class="message ${isSelf ? "unloaded" : ""} ${data.username === currentUser?.username ? "user-msg" : "other-msg"}" id="msg-${data.messageID}">
     <div class="message-header">
-      <span class="message-author">${escapeHTML(data.username)}</span>
+      <span class="message-author">${data.username}</span>
     </div>
-    <div class="message-text">${escapeHTML(data.message)}</div>
-  `
+    <div class="message-text">${data.message}</div>
+  `);
+  // 4. Append it to the page
+  chatBox.appendChild(fragment);
   
   chatBox.appendChild(msgDiv)
   chatBox.scrollTop = chatBox.scrollHeight
