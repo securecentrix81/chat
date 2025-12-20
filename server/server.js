@@ -19,14 +19,6 @@ const io = new Server(server, {
 const insecureChatNamespace = io.of("/socket/insecure");
 const secureChatNamespace = io.of("/socket/secure");
 
-// Import and initialize each backend module
-const initInsecure = require("/server/insecure");
-const initSecure = require("/server/secure");
-
-// Pass the namespace and express app to each module
-initInsecure(insecureChatNamespace, app);
-initSecure(secureChatNamespace, app);
-
 // Health check endpoint
 app.get("/", (req, res) => {
   res.json({
@@ -53,6 +45,14 @@ app.use((req, res, next) => {
   }
   next();
 });
+
+// Import and initialize each backend module
+const initInsecure = require("./insecure");
+const initSecure = require("./secure");
+
+// Pass the namespace and express app to each module
+initInsecure(insecureChatNamespace, app);
+initSecure(secureChatNamespace, app);
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
