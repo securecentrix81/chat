@@ -20,8 +20,8 @@ const insecureChatNamespace = io.of("/socket/insecure");
 const secureChatNamespace = io.of("/socket/secure");
 
 // Import and initialize each backend module
-const initInsecure = require("./insecure");
-const initSecure = require("./secure");
+const initInsecure = require("/server/insecure");
+const initSecure = require("/server/secure");
 
 // Pass the namespace and express app to each module
 initInsecure(insecureChatNamespace, app);
