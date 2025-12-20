@@ -219,7 +219,7 @@ loginBtn.addEventListener("click", () => {
   const password = loginPassword.value;
   
   if (!username || !password) {
-    showFeedback(loginFeedback, "🔓 Please enter both username and password!", "error");
+    showFeedback(loginFeedback, "Please enter both username and password!", "error");
     return;
   }
   
@@ -240,7 +240,7 @@ loginPassword.addEventListener("keydown", (e) => {
 
 socket.on("login-result", (data) => {
   loginBtn.disabled = false;
-  loginBtn.textContent = "🔓 Login";
+  loginBtn.textContent = "Login";
   
   if (data.success) {
     currentUser = data.user;
@@ -271,7 +271,7 @@ signupBtn.addEventListener("click", () => {
   }
   
   if (!password || password.length < 8) {
-    showFeedback(signupFeedback, "🔓 Password must be at least 8 characters.", "error");
+    showFeedback(signupFeedback, "Password must be at least 8 characters.", "error");
     return;
   }
   
@@ -292,7 +292,7 @@ signupPassword.addEventListener("keydown", (e) => {
 
 socket.on("signup-result", (data) => {
   signupBtn.disabled = false;
-  signupBtn.textContent = "🔓 Create Account";
+  signupBtn.textContent = "Create Account";
   
   if (data.success) {
     currentUser = data.user;
@@ -395,7 +395,7 @@ changeUsernameBtn.addEventListener("click", () => {
   }
   
   if (!password) {
-    showFeedback(usernameFeedback, "🔓 Password required to change username", "error");
+    showFeedback(usernameFeedback, "Password required to change username", "error");
     return;
   }
   
@@ -424,12 +424,12 @@ changePasswordBtn.addEventListener("click", () => {
   const newPwd = newPassword.value;
   
   if (!oldPwd) {
-    showFeedback(passwordFeedback, "🔓 Current password is required", "error");
+    showFeedback(passwordFeedback, "Current password is required", "error");
     return;
   }
   
   if (!newPwd || newPwd.length < 8) {
-    showFeedback(passwordFeedback, "🔓 New password must be at least 8 characters", "error");
+    showFeedback(passwordFeedback, "New password must be at least 8 characters", "error");
     return;
   }
   
@@ -465,7 +465,7 @@ confirmDeleteBtn.addEventListener("click", () => {
   const password = deletePassword.value;
   
   if (!password) {
-    showFeedback(deleteFeedback, "🔓 Password required to delete account", "error");
+    showFeedback(deleteFeedback, "Password required to delete account", "error");
     return;
   }
   
@@ -490,7 +490,7 @@ socket.on("delete-account-result", (data) => {
 function clearChat() {
   chatBox.innerHTML = `
     <div class="empty-state" id="empty-state">
-      <div class="empty-state-icon">🔓</div>
+      <div class="empty-state-icon">💬</div>
       <div>No messages yet</div>
       <div style="font-size: 0.85rem;">Start chatting!</div>
       <div class="insecurity-note">
