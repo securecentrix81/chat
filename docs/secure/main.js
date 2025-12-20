@@ -19,7 +19,7 @@ const loadingProgressBar = document.getElementById("loading-progress-bar")
 let progress = 0
 const progressInterval = setInterval(() => {
   if (progress < 90) {
-    progress += Math.random() * 15
+    progress += Math.random()*90/120*500/1000
     loadingProgressBar.style.width = Math.min(progress, 90) + "%"
   }
 }, 500)
@@ -27,6 +27,7 @@ const progressInterval = setInterval(() => {
 // Update status messages
 const statusMessages = [
   "Connecting to server...",
+  "This may take a few minutes...",
   "Waking up server...",
   "Almost there...",
   "Establishing secure connection..."
