@@ -2,7 +2,7 @@
 // 🔧 CONFIGURATION - UPDATE THIS!
 // ============================================
 // Replace with your Render backend URL (no trailing slash!)
-const BACKEND_URL = "https://secure-chat-2177.onrender.com/socket/insecure";
+const BACKEND_URL = "https://chat-0qsk.onrender.com/socket/insecure";
 // ============================================
 
 // Connect to remote backend
