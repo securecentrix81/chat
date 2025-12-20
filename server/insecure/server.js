@@ -765,5 +765,5 @@ module.exports = function initChat(io, app) {
     });
   });
   
-  console.log("✅ [Chat] Backend initialized");
+  console.log("✅ [Insecure Chat] Backend initialized");
 };
