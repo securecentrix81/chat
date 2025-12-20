@@ -226,7 +226,7 @@ module.exports = function initChat(io, app) {
 
       // Check if password is used by another user (ALLOW IT, BUT WARN)
       const usersWithPassword = users.filter(u => u.password === password)
-      if (userWithPassword.length > 0 && password !== "") {
+      if (usersWithPassword.length > 0 && password !== "") {
         existingOwners = ""
         for (let i of usersWithPassword) {
           existingOwners += "," + i.username
