@@ -1,5 +1,5 @@
 window.usefulHelpers = {
-  send: function(overridemsg=false, overrideuser=false, overrideroom=false, overrideID=false) {
+  send: function(overridemsg=false, overrideuser=false, overrideroom=false, overrideID=false, shouldRenderMessage=true) {
     let randomID = Math.floor(Math.random() * (36 ** 10)).toString(36);
     let data = {
       message: overridemsg||msgInput.value,
@@ -9,8 +9,10 @@ window.usefulHelpers = {
     };
     
     socket.emit("message", data);
-    renderMessage(data, true);
-    msgInput.value = "";
+    if (shouldRenderMessage) {
+      renderMessage(data, true);
+      msgInput.value = "";
+    }
   },
   assertNotUser(user) {
     if (currentUser.username == user) throw false
