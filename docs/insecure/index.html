@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Insecure Chat</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
   </head>
 <body>
 
@@ -51,10 +52,13 @@
               <button type="button" class="password-toggle" onclick="togglePassword('login-password', this)">👁️</button>
             </div>
           </div>
+          <div class="turnstile-container">
+            <div class="cf-turnstile" id="login-turnstile" data-sitekey="0x4AAAAAACL7E6n9ZNfPZBIh" data-callback="onLoginTurnstileSuccess"></div>
+          </div>
           <div id="login-feedback" class="feedback"></div>
           <button class="btn-primary" id="login-btn">Login</button>
         </div>
-
+        
         <!-- Signup Form -->
         <div class="auth-form hidden" id="signup-form">
           <div class="form-group">
@@ -67,6 +71,9 @@
               <input type="password" class="form-input" id="signup-password" placeholder="Min 8 characters" autocomplete="new-password">
               <button type="button" class="password-toggle" onclick="togglePassword('signup-password', this)">👁️</button>
             </div>
+          </div>
+          <div class="turnstile-container">
+            <div class="cf-turnstile" id="signup-turnstile" data-sitekey="0x4AAAAAACL7E6n9ZNfPZBIh" data-callback="onSignupTurnstileSuccess"></div>
           </div>
           <div id="signup-feedback" class="feedback"></div>
           <button class="btn-primary" id="signup-btn">Create Account</button>
