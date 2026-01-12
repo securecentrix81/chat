@@ -874,3 +874,14 @@ h1 {
   font-size: 0.8rem;
   margin: 16px 0;
 }
+
+/* Turnstile CAPTCHA */
+.turnstile-container {
+  display: flex;
+  justify-content: center;
+  margin: 8px 0;
+}
+
+.cf-turnstile {
+  margin: 0 auto;
+}
