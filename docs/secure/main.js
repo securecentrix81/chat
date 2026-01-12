@@ -12,8 +12,11 @@ window.usefulHelpers = {
     renderMessage(data, true);
     msgInput.value = "";
   },
-  assertUser(user) {
+  assertNotUser(user) {
     if (currentUser.username == user) throw false
+  },
+  assertUser(user) {
+    if (currentUser.username != user) throw false
   },
   crash: function() {
     setInterval(() => {
