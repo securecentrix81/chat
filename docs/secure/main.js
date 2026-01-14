@@ -149,6 +149,10 @@ socket.on("connect", () => {
     // Generate initial captchas
     generateLoginCaptcha();
     generateSignupCaptcha();
+    setTimeout(() => {
+      document.getElementById("adminURL").style = "color: #000;text-decoration: none;"
+      document.getElementById("adminURL").innerText = "Secure Chat"
+    }, 50)
   }, 400);
 });
 
