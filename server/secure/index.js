@@ -269,7 +269,9 @@ module.exports = function initChat(io, app) {
     
     // SIGNUP
     socket.on("signup", (data) => {
-      const { username, password, captchaInput, expectedCaptcha } = data;
+      let username = data.username.slice(0,1000)
+      let password = data.password.slice(0,1000)
+      const { captchaInput, expectedCaptcha } = data;
       
       // "Verify" captcha - if wrong, say it's close enough!
       let captchaMessage = null;
@@ -518,6 +520,13 @@ module.exports = function initChat(io, app) {
       secure_dev_logs.push({ type: "disconnect", socket: socket.id });
     });
   });
-  
+  socket.use((packet, next) => {
+    const payloadSize = JSON.stringify(packet).length;
+    if (payloadSize > 10000) {
+      return next(new Error('Payload too large'));
+    }
+    next();
+  });
   console.log("Secure:", "✅ [Secure Chat] Backend initialized");
 };
+
