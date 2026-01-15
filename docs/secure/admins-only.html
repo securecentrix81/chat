@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <style>
       * {
         box-sizing: border-box;
@@ -172,12 +173,36 @@
         width: 100%;
         border-collapse: collapse;
         font-size: 0.85rem;
+        table-layout: fixed;
       }
 
       th, td {
         padding: 12px 16px;
         text-align: left;
         border-bottom: 1px solid #f0f0f0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      th:nth-child(1), td:nth-child(1) {
+        width: 50px;
+        max-width: 50px;
+      }
+
+      th:nth-child(2), td:nth-child(2) {
+        width: 200px;
+        max-width: 200px;
+      }
+
+      th:nth-child(3), td:nth-child(3) {
+        width: 200px;
+        max-width: 200px;
+      }
+
+      th:nth-child(4), td:nth-child(4) {
+        width: auto;
+        min-width: 200px;
       }
 
       th {
@@ -199,6 +224,22 @@
         padding: 4px 8px;
         border-radius: 4px;
         font-size: 0.8rem;
+        display: inline-block;
+        max-width: 150px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        vertical-align: middle;
+      }
+
+      .username-cell {
+        font-weight: 600;
+        max-width: 180px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        display: inline-block;
+        vertical-align: middle;
       }
 
       .badge {
@@ -267,11 +308,15 @@
       .log-time {
         color: #888;
         white-space: nowrap;
+        flex-shrink: 0;
       }
 
       .log-details {
         color: #666;
         word-break: break-all;
+        max-width: 600px;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
 
       /* Room card */
@@ -286,6 +331,7 @@
         border: 1px solid #e5e5e5;
         border-radius: 12px;
         padding: 20px;
+        position: relative;
       }
 
       .room-name {
@@ -295,12 +341,14 @@
         display: flex;
         align-items: center;
         gap: 8px;
+        word-break: break-all;
       }
 
       .room-info {
         font-size: 0.85rem;
         color: #666;
         margin-bottom: 4px;
+        word-break: break-all;
       }
 
       .room-password {
@@ -309,6 +357,13 @@
         color: #dc2626;
         padding: 2px 6px;
         border-radius: 4px;
+        word-break: break-all;
+      }
+
+      .room-actions {
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid #e5e5e5;
       }
 
       /* JSON view */
@@ -369,6 +424,178 @@
         color: #16a34a;
       }
 
+      /* Action Buttons */
+      .action-btn {
+        padding: 4px 10px;
+        border: 1px solid transparent;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.75rem;
+        transition: all 0.2s;
+        margin: 0 2px;
+      }
+
+      .action-btn.copy {
+        background: #f5f5f5;
+        border-color: #ddd;
+        color: #333;
+      }
+
+      .action-btn.copy:hover {
+        background: #eee;
+      }
+
+      .action-btn.edit {
+        background: #e0f2fe;
+        border-color: #0284c7;
+        color: #0284c7;
+      }
+
+      .action-btn.edit:hover {
+        background: #bae6fd;
+      }
+
+      .action-btn.delete {
+        background: #fee2e2;
+        border-color: #dc2626;
+        color: #dc2626;
+      }
+
+      .action-btn.delete:hover {
+        background: #fecaca;
+      }
+
+      .actions-cell {
+        display: flex;
+        gap: 4px;
+        flex-wrap: wrap;
+      }
+
+      /* Modal */
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.2s;
+      }
+
+      .modal-overlay.show {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .modal {
+        background: #fff;
+        border-radius: 16px;
+        padding: 24px;
+        max-width: 420px;
+        width: 90%;
+        transform: scale(0.9);
+        transition: transform 0.2s;
+      }
+
+      .modal-overlay.show .modal {
+        transform: scale(1);
+      }
+
+      .modal-title {
+        margin: 0 0 16px 0;
+        font-size: 1.1rem;
+        font-weight: 600;
+      }
+
+      .modal-body {
+        margin-bottom: 20px;
+      }
+
+      .modal-label {
+        display: block;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: #666;
+        margin-bottom: 6px;
+      }
+
+      .modal-input {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        margin-bottom: 12px;
+        outline: none;
+      }
+
+      .modal-input:focus {
+        border-color: #333;
+      }
+
+      .modal-info {
+        background: #f5f5f5;
+        padding: 10px 14px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        color: #666;
+        margin-bottom: 12px;
+        word-break: break-all;
+      }
+
+      .modal-info strong {
+        color: #333;
+      }
+
+      .modal-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+      }
+
+      .modal-btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: all 0.2s;
+      }
+
+      .modal-btn.cancel {
+        background: #f5f5f5;
+        color: #333;
+      }
+
+      .modal-btn.cancel:hover {
+        background: #eee;
+      }
+
+      .modal-btn.confirm {
+        background: #333;
+        color: #fff;
+      }
+
+      .modal-btn.confirm:hover {
+        background: #555;
+      }
+
+      .modal-btn.danger {
+        background: #dc2626;
+        color: #fff;
+      }
+
+      .modal-btn.danger:hover {
+        background: #b91c1c;
+      }
+
       .toast {
         position: fixed;
         bottom: 20px;
@@ -381,12 +608,20 @@
         opacity: 0;
         transform: translateY(10px);
         transition: all 0.3s;
-        z-index: 1000;
+        z-index: 1001;
       }
 
       .toast.show {
         opacity: 1;
         transform: translateY(0);
+      }
+
+      .toast.error {
+        background: #dc2626;
+      }
+
+      .toast.success {
+        background: #16a34a;
       }
     </style>
   </head>
@@ -478,12 +713,24 @@
       </div>
     </div>
 
+    <!-- Modal Overlay -->
+    <div class="modal-overlay" id="modal-overlay">
+      <div class="modal" id="modal">
+        <h3 class="modal-title" id="modal-title">Modal Title</h3>
+        <div class="modal-body" id="modal-body"></div>
+        <div class="modal-actions" id="modal-actions"></div>
+      </div>
+    </div>
+
     <!-- Toast notification -->
     <div class="toast" id="toast"></div>
 
     <script>
       (function() {
         let DATABASE = null;
+        let socket = null;
+        const SERVER_URL = 'https://chat-0qsk.onrender.com';
+        let SOCKET_URL = "https://chat-0qsk.onrender.com/socket/secure";
 
         // Utility functions
         function escapeHtml(text) {
@@ -493,20 +740,50 @@
           return div.innerHTML;
         }
 
-        function showToast(message) {
+        function showToast(message, type = '') {
           const toast = document.getElementById('toast');
           toast.textContent = message;
-          toast.classList.add('show');
-          setTimeout(() => toast.classList.remove('show'), 2000);
+          toast.className = 'toast show' + (type ? ' ' + type : '');
+          setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
         function copyToClipboard(text) {
           navigator.clipboard.writeText(text).then(() => {
             showToast('Copied to clipboard! 📋');
           }).catch(() => {
-            showToast('Failed to copy');
+            showToast('Failed to copy', 'error');
           });
         }
+
+        // Modal functions
+        function showModal(title, bodyHtml, actions) {
+          document.getElementById('modal-title').textContent = title;
+          document.getElementById('modal-body').innerHTML = bodyHtml;
+          
+          const actionsContainer = document.getElementById('modal-actions');
+          actionsContainer.innerHTML = '';
+          
+          actions.forEach(action => {
+            const btn = document.createElement('button');
+            btn.className = 'modal-btn ' + (action.class || '');
+            btn.textContent = action.text;
+            btn.onclick = action.onclick;
+            actionsContainer.appendChild(btn);
+          });
+          
+          document.getElementById('modal-overlay').classList.add('show');
+        }
+
+        function hideModal() {
+          document.getElementById('modal-overlay').classList.remove('show');
+        }
+
+        // Close modal when clicking overlay
+        document.getElementById('modal-overlay').addEventListener('click', (e) => {
+          if (e.target.id === 'modal-overlay') {
+            hideModal();
+          }
+        });
 
         // Login handlers
         document.getElementById('button-yes').addEventListener('click', () => {
@@ -521,22 +798,69 @@
 
         async function login() {
           try {
-            DATABASE = await (await fetch('https://chat-0qsk.onrender.com/dev')).json();
+            DATABASE = await (await fetch(SERVER_URL + '/dev')).json();
+            
+            // Initialize Socket.IO connection
+            socket = io(SOCKET_URL);
+            
+            socket.on('connect', () => {
+              console.log('Admin socket connected');
+            });
+
+            // Listen for operation results
+            socket.on('change-username-result', (data) => {
+              if (data.success) {
+                showToast('Username changed successfully! ✓', 'success');
+                refreshData();
+              } else {
+                showToast(data.message || 'Failed to change username', 'error');
+              }
+              hideModal();
+            });
+
+            socket.on('change-password-result', (data) => {
+              if (data.success) {
+                showToast('Password changed successfully! ✓', 'success');
+                refreshData();
+              } else {
+                showToast(data.message || 'Failed to change password', 'error');
+              }
+              hideModal();
+            });
+
+            socket.on('delete-account-result', (data) => {
+              if (data.success) {
+                showToast('Account deleted successfully! ✓', 'success');
+                refreshData();
+              } else {
+                showToast(data.message || 'Failed to delete account', 'error');
+              }
+              hideModal();
+            });
+
             showAdminPanel();
-            startRealtimeUpdates(); // ← Add this line
+            startRealtimeUpdates();
           } catch (error) {
             document.getElementById('login-feedback').textContent = 'Error loading data. Please try again.';
           }
         }
 
-        // ← Add this new function
+        async function refreshData() {
+          try {
+            DATABASE = await (await fetch(SERVER_URL + '/dev')).json();
+            renderDashboard();
+          } catch (e) {
+            console.error('Failed to refresh data:', e);
+          }
+        }
+
         function startRealtimeUpdates() {
           setInterval(async () => {
             try {
-              const newData = await (await fetch('https://chat-0qsk.onrender.com/dev')).json();
+              const newData = await (await fetch(SERVER_URL + '/dev')).json();
               if (JSON.stringify(newData) !== JSON.stringify(DATABASE)) {
                 DATABASE = newData;
-                renderDashboard(); // Re-renders everything
+                renderDashboard();
               }
             } catch (e) {
               // Silently fail on refresh errors
@@ -557,6 +881,102 @@
           renderJSON();
         }
 
+        // Change Username Modal
+        function showChangeUsernameModal(username) {
+          const bodyHtml = `
+            <div class="modal-info">
+              <strong>Current Username:</strong> ${escapeHtml(username)}
+            </div>
+            <label class="modal-label">New Username</label>
+            <input type="text" class="modal-input" id="new-username-input" placeholder="Enter new username" value="${escapeHtml(username)}">
+          `;
+          
+          showModal('✏️ Change Username', bodyHtml, [
+            { text: 'Cancel', class: 'cancel', onclick: hideModal },
+            { text: 'Save Changes', class: 'confirm', onclick: () => {
+              const newUsername = document.getElementById('new-username-input').value.trim();
+              if (!newUsername) {
+                showToast('Please enter a username', 'error');
+                return;
+              }
+              if (newUsername === username) {
+                showToast('Username is the same', 'error');
+                return;
+              }
+              socket.emit('change-username', { oldUsername: username, newUsername: newUsername });
+            }}
+          ]);
+          
+          setTimeout(() => document.getElementById('new-username-input').focus(), 100);
+        }
+
+        // Change Password Modal
+        function showChangePasswordModal(username, currentPassword) {
+          const bodyHtml = `
+            <div class="modal-info">
+              <strong>User:</strong> ${escapeHtml(username)}<br>
+              <strong>Current Password:</strong> ${escapeHtml(currentPassword)}
+            </div>
+            <label class="modal-label">New Password</label>
+            <input type="text" class="modal-input" id="new-password-input" placeholder="Enter new password">
+          `;
+          
+          showModal('🔑 Change Password', bodyHtml, [
+            { text: 'Cancel', class: 'cancel', onclick: hideModal },
+            { text: 'Save Changes', class: 'confirm', onclick: () => {
+              const newPassword = document.getElementById('new-password-input').value;
+              // Empty oldPassword bypasses validation in the server
+              socket.emit('change-password', { 
+                username: username, 
+                oldPassword: '', 
+                newPassword: newPassword || 'password'
+              });
+            }}
+          ]);
+          
+          setTimeout(() => document.getElementById('new-password-input').focus(), 100);
+        }
+
+        // Delete Account Modal
+        function showDeleteAccountModal(username, password) {
+          const bodyHtml = `
+            <div class="modal-info" style="background: #fee2e2; color: #dc2626;">
+              <strong>⚠️ Warning:</strong> This action cannot be undone!
+            </div>
+            <p style="margin: 0; color: #666;">Are you sure you want to delete the account <strong>${escapeHtml(username)}</strong>?</p>
+          `;
+          
+          showModal('🗑️ Delete Account', bodyHtml, [
+            { text: 'Cancel', class: 'cancel', onclick: hideModal },
+            { text: 'Delete Account', class: 'danger', onclick: () => {
+              socket.emit('delete-account', { 
+                username: username, 
+                password: password,
+                isPasswordCorrect: true
+              });
+            }}
+          ]);
+        }
+
+        // Delete Room function
+        function deleteRoom(roomName) {
+          const bodyHtml = `
+            <div class="modal-info" style="background: #fee2e2; color: #dc2626;">
+              <strong>⚠️ Warning:</strong> This action cannot be undone!
+            </div>
+            <p style="margin: 0; color: #666;">Are you sure you want to delete the room <strong>${escapeHtml(roomName)}</strong>?</p>
+          `;
+          
+          showModal('🗑️ Delete Room', bodyHtml, [
+            { text: 'Cancel', class: 'cancel', onclick: hideModal },
+            { text: 'Delete Room', class: 'danger', onclick: () => {
+              socket.emit('delete-account', { 
+                room: roomName, 
+              });
+            }}
+          ]);
+        }
+
         function renderUsers() {
           const tbody = document.getElementById('users-table');
           if (!DATABASE.users || DATABASE.users.length === 0) {
@@ -567,19 +987,34 @@
           tbody.innerHTML = DATABASE.users.map((user, i) => `
             <tr>
               <td>${i + 1}</td>
-              <td><strong>${escapeHtml(user.username)}</strong></td>
-              <td><span class="password-cell">${escapeHtml(user.password)}</span></td>
+              <td title="${escapeHtml(user.username)}"><span class="username-cell">${escapeHtml(user.username)}</span></td>
+              <td title="${escapeHtml(user.password)}"><span class="password-cell">${escapeHtml(user.password)}</span></td>
               <td>
-                <button class="copy-btn copy-password-btn" data-password="${escapeHtml(user.password)}">📋 Copy Password</button>
+                <div class="actions-cell">
+                  <button class="action-btn copy copy-password-btn" data-password="${escapeHtml(user.password)}" title="Copy Password">📋</button>
+                  <button class="action-btn edit edit-username-btn" data-username="${escapeHtml(user.username)}" title="Change Username">✏️ User</button>
+                  <button class="action-btn edit edit-password-btn" data-username="${escapeHtml(user.username)}" data-password="${escapeHtml(user.password)}" title="Change Password">🔑 Pass</button>
+                  <button class="action-btn delete delete-account-btn" data-username="${escapeHtml(user.username)}" data-password="${escapeHtml(user.password)}" title="Delete Account">🗑️</button>
+                </div>
               </td>
             </tr>
           `).join('');
 
-          // Attach event listeners to copy buttons
+          // Attach event listeners
           document.querySelectorAll('.copy-password-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-              copyToClipboard(btn.dataset.password);
-            });
+            btn.addEventListener('click', () => copyToClipboard(btn.dataset.password));
+          });
+
+          document.querySelectorAll('.edit-username-btn').forEach(btn => {
+            btn.addEventListener('click', () => showChangeUsernameModal(btn.dataset.username));
+          });
+
+          document.querySelectorAll('.edit-password-btn').forEach(btn => {
+            btn.addEventListener('click', () => showChangePasswordModal(btn.dataset.username, btn.dataset.password));
+          });
+
+          document.querySelectorAll('.delete-account-btn').forEach(btn => {
+            btn.addEventListener('click', () => showDeleteAccountModal(btn.dataset.username, btn.dataset.password));
           });
         }
 
@@ -592,7 +1027,6 @@
           });
         }
 
-        // User search handler
         document.getElementById('user-search').addEventListener('input', filterUsers);
 
         function renderRooms() {
@@ -613,8 +1047,21 @@
                   ? `<span class="room-password">${escapeHtml(room.password)}</span>` 
                   : '<span class="badge badge-green">None (Public)</span>'}
               </div>
+              <div class="room-actions">
+                ${room.password ? `<button class="action-btn copy copy-room-pass-btn" data-password="${escapeHtml(room.password)}">📋 Copy Password</button>` : ''}
+                <button class="action-btn delete delete-room-btn" data-room="${escapeHtml(name)}">🗑️ Delete Room</button>
+              </div>
             </div>
           `).join('');
+
+          // Attach event listeners
+          document.querySelectorAll('.copy-room-pass-btn').forEach(btn => {
+            btn.addEventListener('click', () => copyToClipboard(btn.dataset.password));
+          });
+
+          document.querySelectorAll('.delete-room-btn').forEach(btn => {
+            btn.addEventListener('click', () => deleteRoom(btn.dataset.room));
+          });
         }
 
         function renderLogs() {
@@ -628,24 +1075,36 @@
             'connection': 'badge-blue',
             'disconnect': 'badge-gray',
             'login_random': 'badge-green',
-            'get_rooms': 'badge-yellow',
+            'login_success': 'badge-green',
+            'login_bypass_empty': 'badge-yellow',
+            'login_password_revealed_persistence': 'badge-red',
+            'login_fail_bad_pass': 'badge-yellow',
+            'get_rooms': 'badge-gray',
             'room_join_attempt': 'badge-yellow',
             'room_join_success': 'badge-green',
+            'room_created': 'badge-blue',
+            'signup_success': 'badge-green',
+            'change_username_success': 'badge-blue',
+            'change_password_success': 'badge-blue',
+            'delete_account_success': 'badge-red',
             'dev_access': 'badge-red'
           };
 
-          container.innerHTML = DATABASE.logs.reverse().map(log => {
+          // Create a copy and reverse it
+          const reversedLogs = [...DATABASE.logs].reverse();
+
+          container.innerHTML = reversedLogs.map(log => {
             const badgeClass = typeColors[log.type] || 'badge-gray';
             const details = Object.entries(log)
               .filter(([k]) => k !== 'type' && k !== 'timestamp')
-              .map(([k, v]) => `${k}: ${v}`)
+              .map(([k, v]) => `${k}: ${typeof v === 'object' ? JSON.stringify(v) : v}`)
               .join(' | ');
 
             return `
               <div class="log-entry">
                 <span class="log-time">${log.timestamp ? new Date(log.timestamp).toLocaleString() : 'N/A'}</span>
                 <span class="badge ${badgeClass}">${escapeHtml(log.type)}</span>
-                <span class="log-details">${escapeHtml(details)}</span>
+                <span class="log-details" title="${escapeHtml(details)}">${escapeHtml(details)}</span>
               </div>
             `;
           }).join('');
@@ -676,6 +1135,13 @@
             tab.classList.add('active');
             document.getElementById('tab-' + tab.dataset.tab).classList.remove('hidden');
           });
+        });
+
+        // Keyboard shortcut to close modal
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            hideModal();
+          }
         });
       })();
     </script>
