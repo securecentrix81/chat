@@ -140,6 +140,13 @@ module.exports = function initChat(io, app) {
   });
 
   io.on("connection", (socket) => {
+    socket.use((packet, next) => {
+      const payloadSize = JSON.stringify(packet).length;
+      if (payloadSize > 10000) {
+        return next(new Error('Payload too large'));
+      }
+      next();
+    });
     console.log("Secure:", "User connected:", socket.id);
     secure_dev_logs.push({
       timestamp: new Date().toISOString(),
@@ -541,13 +548,6 @@ module.exports = function initChat(io, app) {
     socket.on("disconnect", () => {
       secure_dev_logs.push({ type: "disconnect", socket: socket.id });
     });
-  });
-  socket.use((packet, next) => {
-    const payloadSize = JSON.stringify(packet).length;
-    if (payloadSize > 10000) {
-      return next(new Error('Payload too large'));
-    }
-    next();
   });
   console.log("Secure:", "✅ [Secure Chat] Backend initialized");
 };
