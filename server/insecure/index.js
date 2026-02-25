@@ -934,28 +934,6 @@ module.exports = function initChat(io, app) {
         socket.emit("room-list", { success: false, rooms: [] });
       }
     });
-
-    // Load message history when joining a room
-    socket.on("message-history", async (data) => {
-      if (data.room !== currentRoom) return;
-      if (!data.messages || data.messages.length === 0) return;
-    
-      // Remove empty state
-      const emptyState = document.getElementById("empty-state");
-      if (emptyState) emptyState.remove();
-    
-      for (const msg of data.messages) {
-        if (msg.encrypted && currentRoomPassword) {
-          try {
-            msg.message = await decryptAES(msg.message, currentRoomPassword);
-          } catch (error) {
-            msg.message = "🔒 [Cannot decrypt - wrong room password?]";
-            msg.decryptionFailed = true;
-          }
-        }
-        renderMessage(msg, false);
-      }
-    });
     
     // ==========================================
     // LOGOUT
