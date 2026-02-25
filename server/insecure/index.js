@@ -92,6 +92,18 @@ const roomSchema = new mongoose.Schema({
 
 const Room = mongoose.model("Room", roomSchema);
 
+// Message Schema
+const messageSchema = new mongoose.Schema({
+  room: { type: String, required: true, index: true },
+  message: { type: String, required: true },
+  username: { type: String, required: true },
+  messageID: { type: String, required: true, unique: true },
+  encrypted: { type: Boolean, default: false },
+  timestamp: { type: Number, default: Date.now }
+});
+
+const Message = mongoose.model("Message", messageSchema);
+
 // Session management
 const activeSessions = new Map();
 const SESSION_EXPIRY = 24 * 60 * 60 * 1000;
@@ -230,7 +242,7 @@ function validateRoomName(room) {
 
 function sanitizeMessage(message) {
   if (!message || typeof message !== "string") return "";
-  return message.substring(0, 2000).trim();
+  return message.substring(0, 5000).trim();
 }
 
 function getClientIP(socket) {
@@ -814,6 +826,14 @@ module.exports = function initChat(io, app) {
             success: true,
             room: roomLower
           });
+          
+          // Send message history
+          const messages = await Message.find({ room: roomLower })
+            .sort({ timestamp: 1 })
+            .limit(100)
+            .lean();
+          socket.emit("message-history", { room: roomLower, messages });
+          
           console.log(`[Chat][ROOM] User joined ${roomLower}`);
         } else {
           const roomData = {
@@ -835,6 +855,8 @@ module.exports = function initChat(io, app) {
             created: true
           });
           console.log(`[Chat][ROOM] User created ${roomLower}`);
+          // No history for new rooms
+          socket.emit("message-history", { room: roomLower, messages: [] });
         }
       } catch (error) {
         console.error("[Chat] Join room error:", error.message);
@@ -858,11 +880,10 @@ module.exports = function initChat(io, app) {
     // ==========================================
     // MESSAGES (session-based rate limit)
     // ==========================================
-    socket.on("message", (data) => {
+        socket.on("message", async (data) => {
       if (!currentSession) return;
       if (!data || !data.room || !data.message) return;
       
-      // Rate limit by session token (per user)
       if (!checkRateLimit(currentSession.token, "message")) {
         socket.emit("message-error", {
           message: "You're sending messages too fast! Slow down.",
@@ -882,6 +903,13 @@ module.exports = function initChat(io, app) {
         timestamp: Date.now(),
         encrypted: data.encrypted
       };
+      
+      // Save to database
+      try {
+        await new Message(messageData).save();
+      } catch (error) {
+        console.error("[Chat] Failed to save message:", error.message);
+      }
       
       io.to(data.room).emit("message", messageData);
     });
@@ -904,6 +932,28 @@ module.exports = function initChat(io, app) {
         });
       } catch (error) {
         socket.emit("room-list", { success: false, rooms: [] });
+      }
+    });
+
+    // Load message history when joining a room
+    socket.on("message-history", async (data) => {
+      if (data.room !== currentRoom) return;
+      if (!data.messages || data.messages.length === 0) return;
+    
+      // Remove empty state
+      const emptyState = document.getElementById("empty-state");
+      if (emptyState) emptyState.remove();
+    
+      for (const msg of data.messages) {
+        if (msg.encrypted && currentRoomPassword) {
+          try {
+            msg.message = await decryptAES(msg.message, currentRoomPassword);
+          } catch (error) {
+            msg.message = "🔒 [Cannot decrypt - wrong room password?]";
+            msg.decryptionFailed = true;
+          }
+        }
+        renderMessage(msg, false);
       }
     });
     
